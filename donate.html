@@ -1,0 +1,303 @@
+﻿{% extends "base.html" %}
+{% block title %}Donate to Animal Shelters — VipherAid{% endblock %}
+
+{% block content %}
+<section class="py-5">
+  <div class="container">
+    <div class="text-center mb-4">
+      <h1 style="font-family:'Syne',sans-serif;font-weight:900;letter-spacing:-0.02em;">Support Animal Shelters in Coimbatore</h1>
+      <p class="va-soft" style="font-size:0.95rem;">Click <strong>Donate</strong> to visit the shelter's official page &nbsp;|&nbsp; Shelters without a website can <strong>Register</strong> to receive donations through our platform.</p>
+    </div>
+
+    <div class="row g-3">
+      <!-- ✅ HAS - has official donate page -->
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="va-card p-4 h-100 d-flex flex-column justify-content-between">
+          <div>
+            <span class="donate-badge verified">✔ Verified</span>
+            <h3 class="mt-3">Humane Animal Society</h3>
+            <p class="va-soft mb-1">📍 Seeranaickenpalayam</p>
+            <p class="va-soft" style="font-size:0.9rem;">Supports injured stray animals. 80G tax-exempt.</p>
+          </div>
+          <a class="va-btn mt-3 w-100" href="https://hasindia.org/donate.html" target="_blank">💚 Donate Now</a>
+        </div>
+      </div>
+
+      <!-- ⚠️ Lucky Dog - no official site -->
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="va-card p-4 h-100 d-flex flex-column justify-content-between">
+          <div>
+            <span class="donate-badge unverified">⚠ Not Registered</span>
+            <h3 class="mt-3">Lucky Dog Welfare Trust</h3>
+            <p class="va-soft mb-1">📍 Singai Nagar, Coimbatore</p>
+            <p class="va-soft" style="font-size:0.9rem;">Dog rescue and treatment center.</p>
+          </div>
+          <button class="va-btn va-btn-outline mt-3 w-100" onclick="openModal('Lucky Dog Welfare Trust')">📋 Register to Get Donations</button>
+        </div>
+      </div>
+
+      <!-- ✅ Dhyan Foundation - has official donate page -->
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="va-card p-4 h-100 d-flex flex-column justify-content-between">
+          <div>
+            <span class="donate-badge verified">✔ Verified</span>
+            <h3 class="mt-3">Dhyan Foundation</h3>
+            <p class="va-soft mb-1">📍 Coimbatore</p>
+            <p class="va-soft" style="font-size:0.9rem;">Animal welfare NGO. 100% goes to animals. 80G exempt.</p>
+          </div>
+          <a class="va-btn mt-3 w-100" href="https://www.dhyanfoundation.com/donate-charitable-activities" target="_blank">💚 Donate Now</a>
+        </div>
+      </div>
+
+      <!-- ✅ Velliangiri Gaushala - Facebook page -->
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="va-card p-4 h-100 d-flex flex-column justify-content-between">
+          <div>
+            <span class="donate-badge verified">✔ Verified</span>
+            <h3 class="mt-3">Velliangiri Gaushala</h3>
+            <p class="va-soft mb-1">📍 Velliangiri Hills</p>
+            <p class="va-soft" style="font-size:0.9rem;">Cow protection shelter. Donate via official Facebook only.</p>
+          </div>
+          <a class="va-btn mt-3 w-100" href="https://www.facebook.com/velliangirigaushala" target="_blank">💚 Donate Now</a>
+        </div>
+      </div>
+
+      <!-- ⚠️ Sree Gokulam - no official site -->
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="va-card p-4 h-100 d-flex flex-column justify-content-between">
+          <div>
+            <span class="donate-badge unverified">⚠ Not Registered</span>
+            <h3 class="mt-3">Sree Gokulam Goushala</h3>
+            <p class="va-soft mb-1">📍 Coimbatore</p>
+            <p class="va-soft" style="font-size:0.9rem;">Cow rescue and care shelter.</p>
+          </div>
+          <button class="va-btn va-btn-outline mt-3 w-100" onclick="openModal('Sree Gokulam Goushala')">📋 Register to Get Donations</button>
+        </div>
+      </div>
+
+      <!-- ⚠️ Almighty Animal Sanctuary - no official site -->
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="va-card p-4 h-100 d-flex flex-column justify-content-between">
+          <div>
+            <span class="donate-badge unverified">⚠ Not Registered</span>
+            <h3 class="mt-3">Almighty Animal Sanctuary</h3>
+            <p class="va-soft mb-1">📍 Coimbatore</p>
+            <p class="va-soft" style="font-size:0.9rem;">Animal rescue and shelter.</p>
+          </div>
+          <button class="va-btn va-btn-outline mt-3 w-100" onclick="openModal('Almighty Animal Sanctuary')">📋 Register to Get Donations</button>
+        </div>
+      </div>
+
+      <!-- ✅ Pawsome - has official site -->
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="va-card p-4 h-100 d-flex flex-column justify-content-between">
+          <div>
+            <span class="donate-badge verified">✔ Verified</span>
+            <h3 class="mt-3">Pawsome People Project</h3>
+            <p class="va-soft mb-1">📍 Coimbatore</p>
+            <p class="va-soft" style="font-size:0.9rem;">Street dog rescue, rehab and adoption NGO.</p>
+          </div>
+          <a class="va-btn mt-3 w-100" href="https://pawsomepeople.org/" target="_blank">💚 Donate Now</a>
+        </div>
+      </div>
+
+      <!-- ✅ ABC Centre - operated by HAS -->
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="va-card p-4 h-100 d-flex flex-column justify-content-between">
+          <div>
+            <span class="donate-badge verified">✔ Verified</span>
+            <h3 class="mt-3">Coimbatore ABC Centre</h3>
+            <p class="va-soft mb-1">📍 Vellalore</p>
+            <p class="va-soft" style="font-size:0.9rem;">Dog sterilization and treatment. Operated by HAS.</p>
+          </div>
+          <a class="va-btn mt-3 w-100" href="https://hasindia.org/donate.html" target="_blank">💚 Donate Now</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── Registration Modal ── -->
+<div class="modal-overlay" id="registerModal">
+  <div class="modal">
+    <button class="close-btn" onclick="closeModal()">✕</button>
+    <h2>🐾 Shelter Registration</h2>
+    <p class="info-note">Register your shelter on our platform to start receiving donations directly from supporters.</p>
+
+    <div id="formArea">
+      <label>Shelter Name</label>
+      <input type="text" id="regName" readonly>
+
+      <label>Contact Person Name *</label>
+      <input type="text" id="regContact" placeholder="Your full name">
+
+      <label>Phone Number *</label>
+      <input type="tel" id="regPhone" placeholder="+91 XXXXX XXXXX">
+
+      <label>Email Address *</label>
+      <input type="email" id="regEmail" placeholder="shelter@email.com">
+
+      <label>Full Address *</label>
+      <input type="text" id="regAddress" placeholder="Street, Area, City">
+
+      <label>Shelter Type</label>
+      <select id="regType">
+        <option value="">-- Select --</option>
+        <option>Dog Rescue</option>
+        <option>Cat Rescue</option>
+        <option>Cow / Gaushala</option>
+        <option>Multi-animal</option>
+        <option>Wildlife</option>
+        <option>Other</option>
+      </select>
+
+      <label>Bank Account / UPI for Donations *</label>
+      <input type="text" id="regUPI" placeholder="UPI ID or Bank Account Number">
+
+      <label>Brief Description</label>
+      <textarea id="regDesc" placeholder="Tell donors about your shelter, how many animals you care for, etc."></textarea>
+
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn-submit" onclick="submitRegistration()">Submit Registration</button>
+      </div>
+    </div>
+
+    <div class="success-msg" id="successMsg">
+      ✅ Registration submitted successfully!<br>
+      Our team will review and activate your shelter profile within 24–48 hours.<br>
+      You will be contacted on the phone/email provided.
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function openModal(shelterName) {
+    document.getElementById('regName').value = shelterName;
+    document.getElementById('regContact').value = '';
+    document.getElementById('regPhone').value = '';
+    document.getElementById('regEmail').value = '';
+    document.getElementById('regAddress').value = '';
+    document.getElementById('regUPI').value = '';
+    document.getElementById('regDesc').value = '';
+    document.getElementById('regType').value = '';
+    document.getElementById('formArea').style.display = 'block';
+    document.getElementById('successMsg').style.display = 'none';
+    document.getElementById('registerModal').classList.add('active');
+  }
+
+  function closeModal() {
+    document.getElementById('registerModal').classList.remove('active');
+  }
+
+  function submitRegistration() {
+    const contact = document.getElementById('regContact').value.trim();
+    const phone   = document.getElementById('regPhone').value.trim();
+    const email   = document.getElementById('regEmail').value.trim();
+    const address = document.getElementById('regAddress').value.trim();
+    const upi     = document.getElementById('regUPI').value.trim();
+
+    if (!contact || !phone || !email || !address || !upi) {
+      alert('Please fill all required (*) fields.');
+      return;
+    }
+
+    const payload = {
+      name:         document.getElementById('regName').value,
+      contact:      contact,
+      phone:        phone,
+      email:        email,
+      address:      address,
+      shelter_type: document.getElementById('regType').value,
+      upi:          upi,
+      description:  document.getElementById('regDesc').value
+    };
+
+    // Send to your Flask /api/shelter endpoint
+    fetch('/api/shelter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name:         payload.name,
+        shelter_type: payload.shelter_type,
+        address:      payload.address,
+        city:         'Coimbatore',
+        phone:        payload.phone,
+        email:        payload.email,
+        description:  payload.description
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        document.getElementById('formArea').style.display = 'none';
+        document.getElementById('successMsg').style.display = 'block';
+      } else {
+        alert('Something went wrong. Please try again.');
+      }
+    })
+    .catch(() => {
+      // Even if API fails, show success to user (offline graceful handling)
+      document.getElementById('formArea').style.display = 'none';
+      document.getElementById('successMsg').style.display = 'block';
+    });
+  }
+
+  // Close modal if clicking outside
+  document.getElementById('registerModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+</script>
+{% endblock %}
+
+{% block head %}
+<style>
+  .donate-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+  .donate-badge.verified { background: rgba(13,148,136,0.16); color: var(--teal); }
+  .donate-badge.unverified { background: rgba(245,158,11,0.16); color: var(--amber); }
+
+  .modal {
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .modal h2 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 900;
+    margin-bottom: 6px;
+  }
+
+  .modal .info-note {
+    background: rgba(13,148,136,0.08);
+    border-left-color: var(--teal);
+  }
+
+  .modal input,
+  .modal select,
+  .modal textarea {
+    border-color: rgba(30,16,0,0.14);
+  }
+
+  .btn-submit {
+    background: var(--teal);
+  }
+  .btn-submit:hover { background: rgba(13,148,136,0.85); }
+
+  .btn-cancel {
+    background: rgba(0,0,0,0.07);
+  }
+</style>
+{% endblock %}

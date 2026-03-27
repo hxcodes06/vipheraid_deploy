@@ -1,0 +1,572 @@
+{% extends "base.html" %}
+{% block title %}VipherAid | Emergency{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<section class="emergency-page">
+
+  <div class="emergency-container">
+
+    <!-- HEADER -->
+    <div class="emergency-header">
+      <div class="emergency-icon pulse-red">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <h1>Animal Emergency</h1>
+      <p>We'll find the nearest shelters to your location right now.</p>
+    </div>
+
+    <!-- LOCATE BUTTON -->
+    <div id="locate-section">
+      <button class="btn-locate" onclick="findNearbyShelters()">
+        <i class="fa-solid fa-location-crosshairs"></i>
+        Find Nearby Shelters
+      </button>
+    </div>
+
+    <!-- LOADING -->
+    <div id="loading-section" style="display:none;">
+      <div class="loading-spinner"></div>
+      <p class="loading-text">Detecting your location &amp; finding shelters...</p>
+    </div>
+
+    <!-- ERROR -->
+    <div id="error-section" style="display:none;">
+      <div class="error-box">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <p id="error-msg">Something went wrong.</p>
+        <button class="btn-retry" onclick="retryLocation()">Try Again</button>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div id="results-section" style="display:none;">
+
+      <div class="location-info">
+        <i class="fa-solid fa-location-dot"></i>
+        <span id="location-text">Your location detected</span>
+      </div>
+
+      <h2 class="results-title">Nearby Shelters</h2>
+
+      <div id="shelters-list"></div>
+
+      <button class="btn-retry-location" onclick="retryLocation()">
+        <i class="fa-solid fa-rotate-right"></i>
+        Search Again
+      </button>
+
+    </div>
+
+    <!-- NO SHELTERS -->
+    <div id="no-shelters-section" style="display:none;">
+      <div class="no-shelter-box">
+        <i class="fa-solid fa-house-circle-xmark"></i>
+        <h3>No shelters found nearby</h3>
+        <p>No registered shelters were found near your location. Please try calling a general animal helpline.</p>
+        <a href="tel:+1800-123-4567" class="btn-helpline">
+          <i class="fa-solid fa-phone"></i>
+          Call Animal Helpline
+        </a>
+        <button class="btn-retry-location" onclick="retryLocation()">
+          <i class="fa-solid fa-rotate-right"></i>
+          Search Again
+        </button>
+      </div>
+    </div>
+
+    <!-- BACK BUTTON -->
+    <div class="back-row">
+      <a href="/" class="btn-back">
+        <i class="fa-solid fa-arrow-left"></i>
+        Back to Home
+      </a>
+    </div>
+
+  </div>
+
+</section>
+
+
+<script>
+  let userLat = null;
+  let userLng = null;
+
+  function show(id) {
+    ["locate-section","loading-section","error-section","results-section","no-shelters-section"]
+      .forEach(s => document.getElementById(s).style.display = "none");
+    document.getElementById(id).style.display = "block";
+  }
+
+  function findNearbyShelters() {
+    show("loading-section");
+
+    if (!navigator.geolocation) {
+      showError("Your browser does not support GPS location.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        userLat = position.coords.latitude;
+        userLng = position.coords.longitude;
+        fetchNearbyShelters(userLat, userLng);
+      },
+      error => {
+        let msg = "Could not get your location. Please allow location access.";
+        if (error.code === 1) msg = "Location access denied. Please allow location in your browser settings.";
+        if (error.code === 2) msg = "Location unavailable. Please check your GPS or network.";
+        if (error.code === 3) msg = "Location request timed out. Please try again.";
+        showError(msg);
+      },
+      { timeout: 10000, enableHighAccuracy: true }
+    );
+  }
+
+  function fetchNearbyShelters(lat, lng) {
+    fetch(`/api/nearby-shelters?lat=${lat}&lng=${lng}&radius=50`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) { showError(data.error); return; }
+        if (!data.shelters || data.shelters.length === 0) {
+          show("no-shelters-section");
+          return;
+        }
+        renderShelters(data.shelters, lat, lng);
+      })
+      .catch(() => showError("Network error. Please check your connection."));
+  }
+
+  function renderShelters(shelters, lat, lng) {
+    document.getElementById("location-text").textContent =
+      `Your location: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+
+    const list = document.getElementById("shelters-list");
+    list.innerHTML = "";
+
+    shelters.forEach((s, i) => {
+      const card = document.createElement("div");
+      card.className = "shelter-card";
+      card.innerHTML = `
+        <div class="shelter-top">
+          <div class="shelter-rank">${i + 1}</div>
+          <div class="shelter-info">
+            <h3>${s.name}</h3>
+            <span class="shelter-type">${s.shelter_type || "Animal Shelter"}</span>
+          </div>
+          <div class="shelter-distance">${s.distance_km} km</div>
+        </div>
+        <div class="shelter-details">
+          ${s.address ? `<p><i class="fa-solid fa-location-dot"></i> ${s.address}${s.city ? ", " + s.city : ""}</p>` : ""}
+          ${s.hours ? `<p><i class="fa-solid fa-clock"></i> ${s.hours}</p>` : ""}
+          ${s.animals_helped ? `<p><i class="fa-solid fa-paw"></i> Helps: ${s.animals_helped}</p>` : ""}
+        </div>
+        <div class="shelter-actions">
+          ${s.phone
+            ? `<a href="tel:${s.phone}" class="btn-call">
+                <i class="fa-solid fa-phone"></i> Call Now — ${s.phone}
+               </a>`
+            : `<span class="no-phone"><i class="fa-solid fa-phone-slash"></i> No phone listed</span>`
+          }
+          ${s.email
+            ? `<a href="mailto:${s.email}" class="btn-email">
+                <i class="fa-solid fa-envelope"></i> Email
+               </a>`
+            : ""
+          }
+        </div>
+      `;
+      list.appendChild(card);
+    });
+
+    show("results-section");
+  }
+
+  function showError(msg) {
+    document.getElementById("error-msg").textContent = msg;
+    show("error-section");
+  }
+
+  function retryLocation() {
+    show("locate-section");
+  }
+
+  // Auto-start on page load
+  window.onload = () => findNearbyShelters();
+</script>
+
+
+<style>
+
+* { box-sizing: border-box; }
+
+.emergency-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #fff1f1, #ffffff, #fff7ed);
+  padding: 60px 20px;
+}
+
+.emergency-container {
+  max-width: 640px;
+  margin: auto;
+}
+
+/* HEADER */
+.emergency-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.emergency-icon {
+  font-size: 56px;
+  color: #ef4444;
+  margin-bottom: 16px;
+}
+
+.emergency-header h1 {
+  font-size: 40px;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0 0 10px 0;
+}
+
+.emergency-header p {
+  font-size: 17px;
+  color: #6b7280;
+}
+
+.pulse-red {
+  animation: pulseRed 2s infinite;
+}
+
+@keyframes pulseRed {
+  0%   { text-shadow: 0 0 0 rgba(239,68,68,0.6); }
+  50%  { text-shadow: 0 0 20px rgba(239,68,68,0.4); }
+  100% { text-shadow: 0 0 0 rgba(239,68,68,0); }
+}
+
+/* LOCATE BUTTON */
+#locate-section {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.btn-locate {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+  color: white;
+  border: none;
+  padding: 20px 48px;
+  border-radius: 14px;
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 12px 35px rgba(220,38,38,0.4);
+  transition: 0.3s;
+}
+
+.btn-locate:hover {
+  transform: scale(1.05);
+  box-shadow: 0 16px 45px rgba(220,38,38,0.5);
+}
+
+/* LOADING */
+#loading-section {
+  text-align: center;
+  padding: 40px;
+}
+
+.loading-spinner {
+  width: 52px;
+  height: 52px;
+  border: 5px solid #fecaca;
+  border-top-color: #ef4444;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+  margin: 0 auto 16px auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  color: #6b7280;
+  font-size: 16px;
+}
+
+/* ERROR */
+.error-box {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 14px;
+  padding: 30px;
+  text-align: center;
+  color: #dc2626;
+}
+
+.error-box i {
+  font-size: 36px;
+  margin-bottom: 12px;
+}
+
+.error-box p {
+  color: #374151;
+  margin-bottom: 16px;
+}
+
+.btn-retry {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* LOCATION INFO */
+.location-info {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #16a34a;
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+/* RESULTS TITLE */
+.results-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 20px;
+}
+
+/* SHELTER CARD */
+.shelter-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+  border: 1px solid #f3f4f6;
+}
+
+.shelter-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.shelter-rank {
+  background: #ef4444;
+  color: white;
+  font-weight: 800;
+  font-size: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.shelter-info {
+  flex: 1;
+}
+
+.shelter-info h3 {
+  margin: 0 0 4px 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.shelter-type {
+  background: #fff7ed;
+  color: #c2410c;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.shelter-distance {
+  background: #eff6ff;
+  color: #2563eb;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.shelter-details {
+  margin-bottom: 14px;
+}
+
+.shelter-details p {
+  margin: 6px 0;
+  font-size: 14px;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.shelter-details i {
+  color: #f97316;
+  width: 14px;
+}
+
+/* ACTIONS */
+.shelter-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-call {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(90deg, #16a34a, #15803d);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 15px;
+  flex: 1;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(22,163,74,0.3);
+  transition: 0.2s;
+}
+
+.btn-call:hover {
+  transform: scale(1.03);
+  box-shadow: 0 6px 18px rgba(22,163,74,0.4);
+}
+
+.btn-email {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #eff6ff;
+  color: #2563eb;
+  padding: 12px 18px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.btn-email:hover {
+  background: #dbeafe;
+}
+
+.no-phone {
+  color: #9ca3af;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* NO SHELTERS */
+.no-shelter-box {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 16px;
+  padding: 40px;
+  text-align: center;
+}
+
+.no-shelter-box i {
+  font-size: 48px;
+  color: #f59e0b;
+  margin-bottom: 14px;
+}
+
+.no-shelter-box h3 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 10px;
+}
+
+.no-shelter-box p {
+  color: #6b7280;
+  margin-bottom: 20px;
+}
+
+.btn-helpline {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+  color: white;
+  padding: 14px 28px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+
+/* SEARCH AGAIN */
+.btn-retry-location {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f9fafb;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 16px;
+  transition: 0.2s;
+}
+
+.btn-retry-location:hover {
+  background: #f3f4f6;
+}
+
+/* BACK */
+.back-row {
+  text-align: center;
+  margin-top: 40px;
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #6b7280;
+  text-decoration: none;
+  font-size: 15px;
+  transition: 0.2s;
+}
+
+.btn-back:hover {
+  color: #374151;
+}
+
+</style>
+
+{% endblock %}

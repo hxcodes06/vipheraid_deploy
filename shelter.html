@@ -1,0 +1,307 @@
+{% extends "base.html" %}
+{% block title %}Animal Shelters & NGOs - VipherAid{% endblock %}
+
+{% block content %}
+<section class="py-5">
+  <div class="container py-3">
+
+    <!-- HEADER -->
+    <div class="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-4">
+      <div>
+        <h1 class="fw-bold mb-1">🏥 Animal Shelters & NGOs</h1>
+        <p class="va-soft mb-0">Register your shelter or NGO so rescue teams and citizens can find you during emergencies.</p>
+      </div>
+      <button class="va-btn" id="btnShowForm"><i class="fa-solid fa-plus"></i> Register Your Shelter</button>
+    </div>
+
+    <!-- REGISTER FORM (hidden by default) -->
+    <div class="va-card p-4 p-lg-5 mb-5" id="registerForm" style="display:none; border: 2px solid var(--brand);">
+      <h2 class="fw-bold mb-4" style="color: var(--brand);">📋 Register a Shelter / NGO</h2>
+      <form id="shelterForm">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Organization Name *</label>
+            <input id="sName" class="form-control" placeholder="e.g. Madurai Animal Care Trust" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Type *</label>
+            <select id="sType" class="form-select" required>
+              <option value="">Select type</option>
+              <option value="Shelter">Animal Shelter</option>
+              <option value="NGO">NGO / Rescue Org</option>
+              <option value="Veterinary">Veterinary Hospital</option>
+              <option value="Foster Network">Foster Network</option>
+              <option value="Government">Government Pound</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="col-md-8">
+            <label class="form-label fw-bold">Address / Landmark *</label>
+            <input id="sAddress" class="form-control" placeholder="Full address or landmark" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-bold">City *</label>
+            <input id="sCity" class="form-control" placeholder="City" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Phone Number *</label>
+            <input id="sPhone" class="form-control" placeholder="+91 XXXXX XXXXX" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Email (optional)</label>
+            <input id="sEmail" class="form-control" type="email" placeholder="contact@shelter.org">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">GPS Coordinates (optional)</label>
+            <div class="d-flex gap-2">
+              <input id="sGeo" class="form-control" placeholder="Lat, Long" readonly>
+              <button type="button" class="va-btn-outline" id="btnGeoShelter"><i class="fa-solid fa-location-dot"></i></button>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Capacity (animals)</label>
+            <input id="sCapacity" class="form-control" type="number" placeholder="e.g. 50">
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-bold">Animals We Help</label>
+            <div class="d-flex flex-wrap gap-2 mt-1">
+              <label class="form-check d-flex align-items-center gap-2 p-2 rounded" style="background:var(--card2);cursor:pointer;">
+                <input class="form-check-input" type="checkbox" value="Dogs" name="animals"> Dogs
+              </label>
+              <label class="form-check d-flex align-items-center gap-2 p-2 rounded" style="background:var(--card2);cursor:pointer;">
+                <input class="form-check-input" type="checkbox" value="Cats" name="animals"> Cats
+              </label>
+              <label class="form-check d-flex align-items-center gap-2 p-2 rounded" style="background:var(--card2);cursor:pointer;">
+                <input class="form-check-input" type="checkbox" value="Birds" name="animals"> Birds
+              </label>
+              <label class="form-check d-flex align-items-center gap-2 p-2 rounded" style="background:var(--card2);cursor:pointer;">
+                <input class="form-check-input" type="checkbox" value="Cattle" name="animals"> Cattle
+              </label>
+              <label class="form-check d-flex align-items-center gap-2 p-2 rounded" style="background:var(--card2);cursor:pointer;">
+                <input class="form-check-input" type="checkbox" value="All Animals" name="animals"> All Animals
+              </label>
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-bold">Description / Services Offered</label>
+            <textarea id="sDesc" class="form-control" rows="3" placeholder="e.g. 24/7 rescue, adoption, medical treatment, rehab..."></textarea>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Operating Hours</label>
+            <input id="sHours" class="form-control" placeholder="e.g. 9 AM – 6 PM, Mon–Sat">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-bold">Website / Social Media (optional)</label>
+            <input id="sWebsite" class="form-control" placeholder="https://...">
+          </div>
+        </div>
+        <div class="d-flex flex-wrap gap-2 mt-4">
+          <button type="button" class="va-btn-outline" id="btnCancelForm"><i class="fa-solid fa-xmark"></i> Cancel</button>
+          <button class="va-btn" type="submit"><i class="fa-solid fa-paper-plane"></i> Register Shelter</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- SEARCH / FILTER -->
+    <div class="va-card p-3 mb-4">
+      <div class="row g-2">
+        <div class="col-md-5">
+          <input id="searchInput" class="form-control" placeholder="🔍 Search by name or city...">
+        </div>
+        <div class="col-md-3">
+          <select id="filterType" class="form-select">
+            <option value="all">All Types</option>
+            <option value="Shelter">Animal Shelter</option>
+            <option value="NGO">NGO / Rescue Org</option>
+            <option value="Veterinary">Veterinary Hospital</option>
+            <option value="Foster Network">Foster Network</option>
+            <option value="Government">Government Pound</option>
+          </select>
+        </div>
+        <div class="col-md-4 d-flex gap-2">
+          <button class="va-btn-outline w-100" id="btnRefreshShelters"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
+          <span class="badge-soft d-flex align-items-center"><span id="statShelters">0</span>&nbsp;registered</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SHELTERS LIST -->
+    <div id="emptyBox" class="va-card p-5 text-center" style="display:none;">
+      <div style="font-size:4rem;margin-bottom:20px;">🏥</div>
+      <h3 class="fw-bold mb-2">No shelters registered yet</h3>
+      <p class="va-soft mb-3">Be the first to register your shelter or NGO to help animals in your area.</p>
+      <button class="va-btn" onclick="document.getElementById('btnShowForm').click()"><i class="fa-solid fa-plus"></i> Register Your Shelter</button>
+    </div>
+
+    <div id="shelterList" class="row g-4"></div>
+
+  </div>
+</section>
+
+<style>
+.shelter-card { transition: transform 0.2s, box-shadow 0.2s; }
+.shelter-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.12); }
+.type-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; }
+</style>
+
+<script>
+let allShelters = [];
+
+// Toggle form
+document.getElementById('btnShowForm').addEventListener('click', function() {
+  const f = document.getElementById('registerForm');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+  if (f.style.display === 'block') f.scrollIntoView({behavior:'smooth'});
+});
+document.getElementById('btnCancelForm').addEventListener('click', function() {
+  document.getElementById('registerForm').style.display = 'none';
+  document.getElementById('shelterForm').reset();
+});
+
+// GPS for shelter
+document.getElementById('btnGeoShelter').addEventListener('click', function() {
+  if (!navigator.geolocation) return alert('Geolocation not supported.');
+  navigator.geolocation.getCurrentPosition(
+    pos => { document.getElementById('sGeo').value = `${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`; },
+    () => alert('Could not capture location.')
+  );
+});
+
+// Submit form
+document.getElementById('shelterForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const animals = [...document.querySelectorAll('input[name="animals"]:checked')].map(c => c.value);
+  const payload = {
+    name: document.getElementById('sName').value.trim(),
+    shelter_type: document.getElementById('sType').value,
+    address: document.getElementById('sAddress').value.trim(),
+    city: document.getElementById('sCity').value.trim(),
+    phone: document.getElementById('sPhone').value.trim(),
+    email: document.getElementById('sEmail').value.trim(),
+    geo: document.getElementById('sGeo').value.trim(),
+    capacity: document.getElementById('sCapacity').value.trim(),
+    animals_helped: animals.join(', '),
+    description: document.getElementById('sDesc').value.trim(),
+    hours: document.getElementById('sHours').value.trim(),
+    website: document.getElementById('sWebsite').value.trim()
+  };
+
+  try {
+    const res = await fetch('/api/shelter', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert(`✅ Shelter registered! ID: ${data.id}`);
+      document.getElementById('registerForm').style.display = 'none';
+      document.getElementById('shelterForm').reset();
+      loadShelters();
+    } else {
+      alert('❌ Something went wrong. Please try again.');
+    }
+  } catch(err) {
+    alert('❌ Network error. Try again.');
+  }
+});
+
+// Load shelters
+async function loadShelters() {
+  try {
+    const res = await fetch('/api/shelters');
+    allShelters = await res.json();
+    renderShelters();
+  } catch(e) {
+    console.error('Failed to load shelters:', e);
+  }
+}
+
+function typeColor(t) {
+  const m = { 'Shelter':'rgba(20,184,166,0.15)', 'NGO':'rgba(99,102,241,0.15)', 'Veterinary':'rgba(239,68,68,0.15)', 'Foster Network':'rgba(245,158,11,0.15)', 'Government':'rgba(59,130,246,0.15)' };
+  return m[t] || 'rgba(107,114,128,0.15)';
+}
+function typeTextColor(t) {
+  const m = { 'Shelter':'var(--teal)', 'NGO':'#6366f1', 'Veterinary':'#ef4444', 'Foster Network':'var(--brand)', 'Government':'#3b82f6' };
+  return m[t] || '#6b7280';
+}
+function typeIcon(t) {
+  const m = { 'Shelter':'🏠', 'NGO':'🤝', 'Veterinary':'🏥', 'Foster Network':'❤️', 'Government':'🏛️' };
+  return m[t] || '🏢';
+}
+
+function renderShelters() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const type = document.getElementById('filterType').value;
+
+  const filtered = allShelters.filter(s => {
+    const matchSearch = !search || s.name.toLowerCase().includes(search) || (s.city||'').toLowerCase().includes(search);
+    const matchType = type === 'all' || s.shelter_type === type;
+    return matchSearch && matchType;
+  });
+
+  document.getElementById('statShelters').textContent = allShelters.length;
+
+  const listEl = document.getElementById('shelterList');
+  const emptyEl = document.getElementById('emptyBox');
+
+  listEl.innerHTML = '';
+
+  if (allShelters.length === 0) {
+    emptyEl.style.display = 'block';
+    return;
+  }
+  emptyEl.style.display = 'none';
+
+  if (filtered.length === 0) {
+    listEl.innerHTML = '<div class="col-12"><div class="va-card p-4 text-center"><p class="va-soft mb-0">No shelters match your search.</p></div></div>';
+    return;
+  }
+
+  filtered.forEach(s => {
+    const col = document.createElement('div');
+    col.className = 'col-lg-6 col-xl-4';
+    col.innerHTML = `
+      <div class="va-card p-4 h-100 shelter-card">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <h3 class="fw-bold mb-1" style="font-size:1.1rem;color:var(--text);">${typeIcon(s.shelter_type)} ${s.name}</h3>
+            <div>
+              <span class="type-badge" style="background:${typeColor(s.shelter_type)};color:${typeTextColor(s.shelter_type)};">${s.shelter_type||'Shelter'}</span>
+            </div>
+          </div>
+          <span class="badge-soft" style="font-size:0.75rem;">#${s.id}</span>
+        </div>
+
+        <div class="mb-3">
+          <div class="d-flex align-items-start gap-2 mb-2">
+            <span style="font-size:1rem;">📍</span>
+            <span class="va-soft" style="font-size:0.95rem;">${s.address || '-'}${s.city ? ', '+s.city : ''}</span>
+          </div>
+          ${s.hours ? `<div class="d-flex align-items-start gap-2 mb-2"><span>🕐</span><span class="va-soft" style="font-size:0.9rem;">${s.hours}</span></div>` : ''}
+          ${s.capacity ? `<div class="d-flex align-items-start gap-2 mb-2"><span>🐾</span><span class="va-soft" style="font-size:0.9rem;">Capacity: ${s.capacity} animals</span></div>` : ''}
+          ${s.animals_helped ? `<div class="d-flex align-items-start gap-2 mb-2"><span>✅</span><span class="va-soft" style="font-size:0.9rem;">${s.animals_helped}</span></div>` : ''}
+        </div>
+
+        ${s.description ? `<p class="va-soft mb-3" style="font-size:0.9rem;line-height:1.6;">${s.description}</p>` : ''}
+
+        <div class="d-flex flex-wrap gap-2 mt-auto">
+          <a href="tel:${s.phone}" class="va-btn flex-fill" style="padding:10px;font-size:0.9rem;justify-content:center;text-decoration:none;">
+            📞 ${s.phone}
+          </a>
+          ${s.geo ? `<button onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(s.geo)}','_blank')" class="va-btn-outline" style="padding:10px;font-size:0.9rem;">🧭 Directions</button>` : ''}
+          ${s.website ? `<a href="${s.website}" target="_blank" class="va-btn-outline" style="padding:10px;font-size:0.9rem;text-decoration:none;">🌐</a>` : ''}
+        </div>
+      </div>
+    `;
+    listEl.appendChild(col);
+  });
+}
+
+document.getElementById('searchInput').addEventListener('input', renderShelters);
+document.getElementById('filterType').addEventListener('change', renderShelters);
+document.getElementById('btnRefreshShelters').addEventListener('click', loadShelters);
+
+loadShelters();
+</script>
+{% endblock %}

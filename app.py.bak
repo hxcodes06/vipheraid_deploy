@@ -1,0 +1,220 @@
+from flask import Flask, render_template, request, redirect, session, jsonify, flash
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
+from werkzeug.utils import secure_filename
+import os
+
+app = Flask(__name__)
+app.secret_key = "viperaid_expo_final_2026_madurai"
+
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///viperaid.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["UPLOAD_FOLDER"] = "static/uploads"
+app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB max file size
+
+# Create uploads folder if it doesn't exist
+os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+
+db = SQLAlchemy(app)
+
+
+class Report(db.Model):
+    id = db.Column(db.String(20), primary_key=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    animal_type = db.Column(db.String(50))
+    urgency = db.Column(db.String(20), default="Medium")
+    location_text = db.Column(db.String(200))
+    geo = db.Column(db.String(100))
+    description = db.Column(db.Text)
+    reporter_name = db.Column(db.String(100))
+    reporter_phone = db.Column(db.String(20))
+    status = db.Column(db.String(20), default="Reported")
+    assigned_to = db.Column(db.String(100))
+    photo_url = db.Column(db.String(300))  # New field for photo
+
+
+with app.app_context():
+    db.create_all()
+
+
+# ---------------- PAGES ----------------
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+
+@app.route("/report")
+def report():
+    return render_template("report.html")
+
+
+@app.route("/emergency")
+def emergency():
+    return render_template("emergency.html")
+
+
+@app.route("/rescue")
+def rescue():
+    if not session.get("rescuer"):
+        return redirect("/rescue-login")
+    return render_template("rescue.html")
+
+
+@app.route("/donate")
+def donate():
+    return render_template("donate.html")
+
+
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
+
+@app.route("/volunteer")
+def volunteer():
+    return render_template("volunteer.html")
+
+
+@app.route("/ambulance")
+def ambulance():
+    return render_template("ambulance.html")
+
+
+# ---------------- LOGIN (not shown in navbar/index body) ----------------
+@app.route("/citizen-login", methods=["GET", "POST"])
+def citizen_login():
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        phone = request.form.get("phone", "").strip()
+
+        if not name:
+            flash("Please enter your name")
+            return redirect("/citizen-login")
+
+        session["citizen_name"] = name
+        if phone:
+            session["citizen_phone"] = phone
+
+        return redirect("/report")
+
+    return render_template("citizen-login.html")
+
+
+@app.route("/rescue-login", methods=["GET", "POST"])
+def rescue_login():
+    if request.method == "POST":
+        org = request.form.get("org", "").strip()
+        code = request.form.get("code", "").strip()
+
+        if code == "VIPERNGO":
+            session["rescuer"] = True
+            session["org"] = org or "NGO"
+            return redirect("/rescue")
+
+        flash("Invalid NGO code. Try: VIPERNGO")
+        return redirect("/rescue-login")
+
+    return render_template("rescue-login.html")
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/")
+
+
+# ---------------- APIs ----------------
+@app.route("/api/report", methods=["POST"])
+def api_create_report():
+    # Handle both JSON and form data
+    if request.is_json:
+        data = request.json or {}
+        photo = None
+    else:
+        data = request.form.to_dict()
+        photo = request.files.get('photo')
+    
+    # Save photo if provided
+    photo_url = None
+    if photo and photo.filename:
+        filename = secure_filename(f"{int(datetime.now().timestamp())}_{photo.filename}")
+        photo_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        photo.save(photo_path)
+        photo_url = f"/static/uploads/{filename}"
+
+    report = Report(
+        id=f"VA{int(datetime.now().timestamp())}",
+        animal_type=data.get("animalType"),
+        urgency=data.get("urgency", "Medium"),
+        location_text=data.get("locationText"),
+        geo=data.get("geo"),
+        description=data.get("description"),
+        reporter_name=data.get("reporterName") or session.get("citizen_name"),
+        reporter_phone=data.get("reporterPhone") or session.get("citizen_phone"),
+        status="Reported",
+        assigned_to="",
+        photo_url=photo_url
+    )
+    db.session.add(report)
+    db.session.commit()
+
+    return jsonify({"success": True, "id": report.id, "photoUrl": photo_url})
+
+
+@app.route("/api/reports")
+def api_reports():
+    if not session.get("rescuer"):
+        return jsonify({"error": "Unauthorized"}), 403
+
+    reports = Report.query.order_by(Report.created_at.desc()).limit(100).all()
+    return jsonify([{
+        "id": r.id,
+        "animalType": r.animal_type,
+        "urgency": r.urgency,
+        "locationText": r.location_text,
+        "geo": r.geo,
+        "description": r.description,
+        "status": r.status,
+        "createdAt": r.created_at.isoformat(),
+        "reporterName": r.reporter_name,
+        "reporterPhone": r.reporter_phone,
+        "assignedTo": r.assigned_to,
+        "photoUrl": r.photo_url
+    } for r in reports])
+
+
+@app.route("/api/report/<report_id>", methods=["POST"])
+def api_update_report(report_id):
+    if not session.get("rescuer"):
+        return jsonify({"error": "Unauthorized"}), 403
+
+    report = Report.query.get_or_404(report_id)
+    data = request.json or {}
+
+    if "status" in data:
+        report.status = data["status"]
+    if "assignedTo" in data:
+        report.assigned_to = data["assignedTo"]
+
+    db.session.commit()
+    return jsonify({"success": True})
+
+
+@app.route("/api/report/<report_id>", methods=["DELETE"])
+def api_delete_report(report_id):
+    if not session.get("rescuer"):
+        return jsonify({"error": "Unauthorized"}), 403
+
+    report = Report.query.get_or_404(report_id)
+    db.session.delete(report)
+    db.session.commit()
+    return jsonify({"success": True})
+
+
+@app.route("/favicon.ico")
+def favicon():
+    return "", 204
+
+
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=5000)

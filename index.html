@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+{% block title %}VipherAid | Save Animal Lives{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<section class="hero">
+
+<div class="hero-container">
+
+<div class="hero-left">
+
+<div class="badge">🐾 Animal Rescue Network</div>
+
+<h1 class="hero-title">
+Every second counts.<br>
+<span class="gradient">Save an animal now.</span>
+</h1>
+
+<h3 class="hero-sub">
+See an animal in distress?
+</h3>
+
+
+<!-- EMERGENCY BUTTON -->
+
+<div class="emergency-wrapper">
+
+<a href="/emergency" class="btn-emergency pulse">
+
+<i class="fa-solid fa-phone-volume"></i>
+Emergency Call
+
+</a>
+
+</div>
+
+
+
+<div class="secondary-buttons">
+
+<a href="/report" class="btn-report">
+
+<i class="fa-solid fa-file-circle-plus"></i>
+Regular Report
+
+</a>
+
+</div>
+
+</div>
+
+
+
+<div class="hero-right">
+
+<div class="rescue-card">
+
+<div class="card-icon">
+<i class="fa-solid fa-paw"></i>
+</div>
+
+<h2>Animal Rescue Platform</h2>
+
+<p>
+Report injured animals and instantly connect with nearby rescue NGOs.
+VipherAid helps volunteers save lives faster using smart rescue technology.
+</p>
+
+<div class="card-stats">
+
+<div class="stat">
+<h3>24/7</h3>
+<span>Emergency Support</span>
+</div>
+
+<div class="stat">
+<h3>Fast</h3>
+<span>Response</span>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+
+<section class="how-section">
+
+<h2 class="section-title">How VipherAid Works</h2>
+
+<div class="steps">
+
+<div class="step">
+
+<div class="step-icon">
+<i class="fa-solid fa-phone"></i>
+</div>
+
+<h3>Emergency Call</h3>
+
+<p>Contact the nearest rescue team instantly.</p>
+
+</div>
+
+<div class="step">
+
+<div class="step-icon">
+<i class="fa-solid fa-location-dot"></i>
+</div>
+
+<h3>Share Location</h3>
+
+<p>GPS allows rescuers to locate the animal quickly.</p>
+
+</div>
+
+<div class="step">
+
+<div class="step-icon">
+<i class="fa-solid fa-truck-medical"></i>
+</div>
+
+<h3>Animal Rescued</h3>
+
+<p>Rescue volunteers reach the spot and help the animal.</p>
+
+</div>
+
+</div>
+
+</section>
+
+
+
+<style>
+
+.hero{
+padding:110px 20px;
+background:linear-gradient(180deg,#fff7ed,#ffffff,#fff7ed);
+}
+
+.hero-container{
+display:flex;
+align-items:center;
+justify-content:space-between;
+max-width:1200px;
+margin:auto;
+gap:60px;
+flex-wrap:wrap;
+}
+
+.hero-left{
+flex:1;
+min-width:320px;
+}
+
+.hero-right{
+flex:1;
+display:flex;
+justify-content:center;
+}
+
+.badge{
+background:#ffedd5;
+color:#c2410c;
+padding:6px 14px;
+border-radius:20px;
+font-size:14px;
+display:inline-block;
+margin-bottom:15px;
+}
+
+.hero-title{
+font-size:52px;
+font-weight:800;
+line-height:1.2;
+}
+
+.gradient{
+background:linear-gradient(90deg,#ef4444,#f59e0b);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
+
+.hero-sub{
+font-size:24px;
+margin:20px 0 30px 0;
+color:#374151;
+}
+
+
+
+
+.emergency-wrapper{
+margin-bottom:20px;
+}
+
+.btn-emergency{
+display:inline-flex;
+align-items:center;
+gap:12px;
+background:linear-gradient(90deg,#ef4444,#dc2626);
+color:white;
+padding:24px 55px;
+border-radius:16px;
+text-decoration:none;
+font-weight:800;
+font-size:24px;
+box-shadow:0 15px 45px rgba(220,38,38,0.45);
+transition:0.3s;
+}
+
+.btn-emergency:hover{
+transform:scale(1.08);
+box-shadow:0 20px 60px rgba(220,38,38,0.55);
+}
+
+
+
+
+.pulse{
+animation:pulse 2s infinite;
+}
+
+@keyframes pulse{
+0%{box-shadow:0 0 0 0 rgba(239,68,68,0.6);}
+70%{box-shadow:0 0 0 20px rgba(239,68,68,0);}
+100%{box-shadow:0 0 0 0 rgba(239,68,68,0);}
+}
+
+
+
+
+.secondary-buttons{
+display:flex;
+gap:12px;
+margin-bottom:30px;
+}
+
+.btn-report{
+display:flex;
+align-items:center;
+gap:8px;
+background:#2563eb;
+color:white;
+padding:14px 22px;
+border-radius:10px;
+text-decoration:none;
+font-weight:600;
+}
+
+
+
+
+.rescue-card{
+background:white;
+padding:40px;
+border-radius:18px;
+box-shadow:0 15px 45px rgba(0,0,0,0.08);
+max-width:360px;
+text-align:center;
+}
+
+.card-icon{
+font-size:42px;
+margin-bottom:10px;
+color:#f97316;
+}
+
+.card-stats{
+display:flex;
+justify-content:space-around;
+margin-top:20px;
+}
+
+.stat h3{
+margin:0;
+font-size:22px;
+}
+
+.stat span{
+font-size:13px;
+color:#6b7280;
+}
+
+
+
+
+
+.how-section{
+padding:80px 20px;
+text-align:center;
+background:#fff7ed;
+}
+
+.section-title{
+font-size:36px;
+margin-bottom:40px;
+}
+
+.steps{
+display:flex;
+justify-content:center;
+gap:40px;
+flex-wrap:wrap;
+}
+
+.step{
+max-width:250px;
+}
+
+.step-icon{
+font-size:40px;
+margin-bottom:10px;
+color:#f97316;
+}
+
+</style>
+
+{% endblock %}

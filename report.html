@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block title %}AI Animal Report{% endblock %}
+
+{% block content %}
+<section class="py-5">
+  <div class="container" style="max-width: 720px;">
+
+    <h2 class="fw-bold mb-2">🐾 Animal Rescue Report</h2>
+    <p class="text-muted mb-4">
+      Fill in the details below. Your GPS location is captured automatically to help rescuers reach the animal fast.
+    </p>
+
+    <!-- GPS Status Bar -->
+    <div id="gpsBar" style="background:#f0f7ff; border:1px solid #cce0ff; border-radius:10px; padding:11px 16px; margin-bottom:24px; font-size:14px; display:flex; align-items:center; gap:10px;">
+      <span id="locationDot" style="width:11px; height:11px; border-radius:50%; background:#f0ad4e; display:inline-block; flex-shrink:0; transition:background 0.4s;"></span>
+      <span id="locationText" style="color:#444;">Getting your location…</span>
+    </div>
+
+    <form id="reportForm" enctype="multipart/form-data">
+      <input type="hidden" id="latitude"  name="latitude">
+      <input type="hidden" id="longitude" name="longitude">
+
+      <!-- Animal Photo -->
+      <div class="mb-4">
+        <label class="form-label fw-semibold">📷 Animal Photo <span style="color:#dc3545">*</span></label>
+        <div id="uploadArea" style="border:2px dashed #ccc; border-radius:12px; padding:32px; text-align:center; cursor:pointer; transition:border-color 0.2s;" onclick="document.getElementById('photoInput').click()">
+          <input type="file" id="photoInput" name="photo" accept="image/*" required style="display:none;" onchange="previewImage(this)">
+          <div id="uploadPlaceholder">
+            <div style="font-size:44px; margin-bottom:8px;">📷</div>
+            <p style="margin:0; color:#555; font-size:15px;">Click to upload animal photo</p>
+            <p style="margin:4px 0 0; font-size:12px; color:#aaa;">JPG, PNG up to 16 MB</p>
+          </div>
+          <img id="previewImg" style="display:none; max-width:100%; max-height:280px; border-radius:10px; margin-top:8px; box-shadow:0 4px 14px rgba(0,0,0,0.12);">
+        </div>
+      </div>
+
+      <!-- Animal Name -->
+      <div class="mb-3">
+        <label for="animalName" class="form-label fw-semibold">🐶 Animal Name / Type <span style="color:#dc3545">*</span></label>
+        <input type="text" class="form-control" id="animalName" name="animal_name" placeholder="e.g. Dog, Cat, Cow, Pigeon…" required>
+      </div>
+
+      <!-- What happened -->
+      <div class="mb-3">
+        <label for="incidentDesc" class="form-label fw-semibold">📝 What Happened? <span style="color:#dc3545">*</span></label>
+        <textarea class="form-control" id="incidentDesc" name="description" rows="4" placeholder="Describe the animal's condition — injuries, behaviour, how you found it…" required style="resize:vertical;"></textarea>
+      </div>
+
+      <!-- Reporter Name -->
+      <div class="mb-3">
+        <label for="reporterName" class="form-label fw-semibold">👤 Your Name <span style="color:#dc3545">*</span></label>
+        <input type="text" class="form-control" id="reporterName" name="reporter_name" placeholder="Enter your full name" required>
+      </div>
+
+      <!-- Reporter Contact -->
+      <div class="mb-4">
+        <label for="reporterPhone" class="form-label fw-semibold">📞 Your Contact Number <span style="color:#dc3545">*</span></label>
+        <input type="tel" class="form-control" id="reporterPhone" name="reporter_phone" placeholder="+91 XXXXX XXXXX" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100" style="padding:13px; font-size:16px; border-radius:10px;">
+        🚨 Submit Rescue Report
+      </button>
+    </form>
+
+    <!-- Loading -->
+    <div id="loading" style="display:none; margin-top:28px; text-align:center; padding:28px;">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p style="margin-top:14px; color:#555; font-size:15px;">Submitting your rescue report…</p>
+    </div>
+
+    <!-- Success card -->
+    <div id="successBox" style="display:none; margin-top:32px; border:1px solid #d4edda; border-radius:14px; background:#f6fff8; overflow:hidden;">
+      <img id="successPhoto" style="width:100%; max-height:280px; object-fit:cover;">
+      <div style="padding:24px;">
+
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px;">
+          <span style="font-size:2rem;">✅</span>
+          <div>
+            <div style="font-weight:800; font-size:1.1rem;">Report Submitted!</div>
+            <div style="font-size:13px; color:#666;">Rescue team has been notified.</div>
+          </div>
+        </div>
+
+        <table style="width:100%; font-size:14px; border-collapse:collapse;">
+          <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:9px 0; color:#888; width:140px;">Report ID</td>
+            <td style="padding:9px 0; font-weight:700;" id="sReportId">—</td>
+          </tr>
+          <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:9px 0; color:#888;">Animal</td>
+            <td style="padding:9px 0; font-weight:600;" id="sAnimal">—</td>
+          </tr>
+          <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:9px 0; color:#888;">Reporter</td>
+            <td style="padding:9px 0;" id="sReporter">—</td>
+          </tr>
+          <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:9px 0; color:#888;">Contact</td>
+            <td style="padding:9px 0;" id="sPhone">—</td>
+          </tr>
+          <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:9px 0; color:#888; vertical-align:top;">Description</td>
+            <td style="padding:9px 0; line-height:1.6;" id="sDesc">—</td>
+          </tr>
+          <tr>
+            <td style="padding:9px 0; color:#888;">GPS</td>
+            <td style="padding:9px 0; font-size:13px;" id="sGps">—</td>
+          </tr>
+        </table>
+
+        <div id="mapContainer" style="display:none; margin-top:16px; border-radius:10px; overflow:hidden; border:1px solid #ddd;">
+          <iframe id="mapFrame" width="100%" height="230" style="border:0; display:block;" allowfullscreen loading="lazy"></iframe>
+        </div>
+
+        <div style="margin-top:16px; padding:10px 14px; background:#fff8e1; border-radius:8px; font-size:13px; color:#8a6000;">
+          ⚠️ Save this Report ID: <strong id="sReportId2"></strong>
+        </div>
+
+        <button onclick="resetForm()" class="btn btn-outline-secondary w-100 mt-3">
+          + Submit Another Report
+        </button>
+      </div>
+    </div>
+
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  let userLat = null;
+  let userLng = null;
+
+  const dot  = document.getElementById("locationDot");
+  const text = document.getElementById("locationText");
+
+  if (navigator.geolocation) {
+    navigator.geolocation.watchPosition(
+      function(pos) {
+        userLat = pos.coords.latitude.toFixed(6);
+        userLng = pos.coords.longitude.toFixed(6);
+        document.getElementById("latitude").value  = userLat;
+        document.getElementById("longitude").value = userLng;
+        dot.style.background = "#28a745";
+        text.textContent = "📍 GPS captured: " + userLat + ", " + userLng;
+      },
+      function() {
+        dot.style.background = "#dc3545";
+        text.textContent = "⚠️ Location unavailable — report will be saved without GPS.";
+      },
+      { enableHighAccuracy: true }
+    );
+  } else {
+    dot.style.background = "#aaa";
+    text.textContent = "Geolocation not supported by your browser.";
+  }
+
+  function previewImage(input) {
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById("previewImg").src = e.target.result;
+        document.getElementById("previewImg").style.display = "block";
+        document.getElementById("uploadPlaceholder").style.display = "none";
+        document.getElementById("uploadArea").style.borderColor = "#28a745";
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  document.getElementById("reportForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const file = document.getElementById("photoInput").files[0];
+    if (!file) { alert("Please upload a photo of the animal."); return; }
+
+    const formData = new FormData();
+    formData.append("photo",          file);
+    formData.append("latitude",       document.getElementById("latitude").value);
+    formData.append("longitude",      document.getElementById("longitude").value);
+    formData.append("animal_name",    document.getElementById("animalName").value.trim());
+    formData.append("description",    document.getElementById("incidentDesc").value.trim());
+    formData.append("reporter_name",  document.getElementById("reporterName").value.trim());
+    formData.append("reporter_phone", document.getElementById("reporterPhone").value.trim());
+
+    document.getElementById("loading").style.display    = "block";
+    document.getElementById("successBox").style.display = "none";
+
+    try {
+      const res  = await fetch("/api/ai-report", { method: "POST", body: formData });
+      const data = await res.json();
+      document.getElementById("loading").style.display = "none";
+
+      if (data.success) {
+        document.getElementById("successPhoto").src          = data.photoUrl || "";
+        document.getElementById("sReportId").textContent    = data.id;
+        document.getElementById("sReportId2").textContent   = data.id;
+        document.getElementById("sAnimal").textContent      = data.animal        || "Unknown";
+        document.getElementById("sReporter").textContent    = data.reporterName  || "—";
+        document.getElementById("sPhone").textContent       = data.reporterPhone || "—";
+        document.getElementById("sDesc").textContent        = data.description   || "—";
+
+        if (userLat && userLng) {
+          document.getElementById("sGps").textContent = "Lat: " + userLat + "   Lng: " + userLng;
+          document.getElementById("mapFrame").src = "https://maps.google.com/maps?q=" + userLat + "," + userLng + "&z=15&output=embed";
+          document.getElementById("mapContainer").style.display = "block";
+        } else {
+          document.getElementById("sGps").textContent = "Not captured";
+        }
+
+        document.getElementById("successBox").style.display = "block";
+        document.getElementById("reportForm").style.display = "none";
+        document.getElementById("successBox").scrollIntoView({ behavior: "smooth" });
+      } else {
+        alert("Report failed: " + (data.error || "Unknown error"));
+      }
+
+    } catch (err) {
+      document.getElementById("loading").style.display = "none";
+      alert("Network error: " + err);
+    }
+  });
+
+  function resetForm() {
+    document.getElementById("reportForm").reset();
+    document.getElementById("previewImg").style.display = "none";
+    document.getElementById("uploadPlaceholder").style.display = "block";
+    document.getElementById("uploadArea").style.borderColor = "#ccc";
+    document.getElementById("successBox").style.display = "none";
+    document.getElementById("reportForm").style.display = "block";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+</script>
+{% endblock %}

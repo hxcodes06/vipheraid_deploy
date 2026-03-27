@@ -1,0 +1,343 @@
+{% extends "base.html" %}
+{% block title %}Rescue Dashboard — VipherAid{% endblock %}
+
+{% block content %}
+<section class="py-5">
+  <div class="container py-2">
+
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4 animate-up">
+      <div>
+        <div class="section-label">NGO Operations Centre</div>
+        <h1 style="font-family:'Syne',sans-serif;font-weight:900;letter-spacing:-0.02em;margin-bottom:4px;">Rescue Dashboard</h1>
+        <p class="va-soft mb-0" style="font-size:0.9rem;">{{ session.org or 'VipherAid' }} · Emergency cases shown first · Auto-refreshes every 30s</p>
+      </div>
+      <div class="d-flex gap-2 align-items-center flex-wrap">
+        <div style="display:flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(22,163,74,0.10);border:1px solid rgba(22,163,74,0.22);border-radius:999px;">
+          <span class="live-dot"></span>
+          <span style="font-size:0.78rem;font-weight:700;color:#15803d;" id="lastRefresh">Live</span>
+        </div>
+        <button class="va-btn-outline" id="btnRefresh" style="padding:10px 18px;">
+          <i class="fa-solid fa-arrows-rotate me-1"></i> Refresh
+        </button>
+        {% if not session.rescuer %}
+        <a href="/rescue-login" class="va-btn" style="padding:10px 18px;font-size:0.88rem;text-decoration:none;">🔐 NGO Login</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="row g-3 mb-4 animate-up delay-1">
+      <div class="col-6 col-md-3">
+        <div style="background:white;border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;border-top:3px solid var(--amber);box-shadow:var(--shadow-sm);">
+          <div style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:900;color:var(--amber);" id="statTotal">—</div>
+          <div style="font-size:0.78rem;color:var(--muted);font-weight:600;margin-top:2px;">Total Cases</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div style="background:white;border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;border-top:3px solid #dc2626;box-shadow:var(--shadow-sm);">
+          <div style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:900;color:#dc2626;" id="statEmerg">—</div>
+          <div style="font-size:0.78rem;color:var(--muted);font-weight:600;margin-top:2px;">Emergency Calls</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div style="background:white;border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;border-top:3px solid #f59e0b;box-shadow:var(--shadow-sm);">
+          <div style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:900;color:#f59e0b;" id="statCritical">—</div>
+          <div style="font-size:0.78rem;color:var(--muted);font-weight:600;margin-top:2px;">Critical</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div style="background:white;border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;border-top:3px solid #16a34a;box-shadow:var(--shadow-sm);">
+          <div style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:900;color:#16a34a;" id="statDone">—</div>
+          <div style="font-size:0.78rem;color:var(--muted);font-weight:600;margin-top:2px;">Completed</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="va-card p-3 mb-4 animate-up delay-2" style="border:none;box-shadow:var(--shadow-sm);">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-3 col-6">
+          <label class="form-label" style="font-size:0.78rem;">Status</label>
+          <select id="filterStatus" class="form-select form-select-sm">
+            <option value="all">All statuses</option>
+            <option value="Reported">Reported</option>
+            <option value="Accepted">Accepted</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Completed">Completed</option>
+          </select>
+        </div>
+        <div class="col-md-3 col-6">
+          <label class="form-label" style="font-size:0.78rem;">Urgency</label>
+          <select id="filterUrgency" class="form-select form-select-sm">
+            <option value="all">All urgencies</option>
+            <option value="Critical">Critical</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+        <div class="col-md-3 col-6">
+          <label class="form-label" style="font-size:0.78rem;">Source</label>
+          <select id="filterSource" class="form-select form-select-sm">
+            <option value="all">All reports</option>
+            <option value="emergency">🚨 Emergency calls only</option>
+            <option value="regular">📋 Regular reports only</option>
+          </select>
+        </div>
+        <div class="col-md-3 col-6 d-flex align-items-end">
+          <button onclick="render()" class="va-btn-outline w-100" style="font-size:0.86rem;padding:9px;">Apply Filters</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty state -->
+    <div id="emptyBox" class="va-card p-5 text-center animate-in" style="display:none;border:none;box-shadow:var(--shadow-sm);">
+      <div style="font-size:3rem;margin-bottom:12px;">📭</div>
+      <h4 style="font-family:'Syne',sans-serif;font-weight:800;margin-bottom:6px;">No reports yet</h4>
+      <p class="va-soft mb-0">When citizens submit reports or make emergency calls, they appear here instantly.</p>
+    </div>
+
+    <!-- Reports grid -->
+    <div id="list" class="row g-3"></div>
+
+    {% if not session.rescuer %}
+    <!-- Login prompt banner -->
+    <div class="va-card p-4 mt-4 text-center" style="border:none;box-shadow:var(--shadow-md);background:linear-gradient(145deg,#fffdf7,#fff);border-top:3px solid var(--amber);">
+      <div style="font-size:2rem;margin-bottom:10px;">🔐</div>
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;margin-bottom:6px;">NGO Login for Full Access</div>
+      <div style="color:var(--muted);font-size:0.88rem;margin-bottom:14px;">Log in to accept cases, assign rescuers, update status, and delete reports.</div>
+      <a href="/rescue-login" class="va-btn" style="text-decoration:none;padding:11px 28px;">Login as NGO</a>
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+var allReports = [];
+var isLoggedIn = {{ 'true' if session.rescuer else 'false' }};
+
+function fmt(iso) {
+  try {
+    var d = new Date(iso);
+    return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'}) + ' · ' +
+           d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  } catch(e) { return iso; }
+}
+
+function urgClass(u) {
+  return {Critical:'urg-critical',High:'urg-high',Medium:'urg-medium',Low:'urg-low'}[u]||'urg-low';
+}
+
+function getLiveDirections(geo) {
+  if (!geo) { alert('No GPS data for this report.'); return; }
+  var parts = geo.split(',');
+  var dlat = parseFloat(parts[0]), dlng = parseFloat(parts[1]);
+  if (isNaN(dlat)||isNaN(dlng)) { alert('Invalid GPS data.'); return; }
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(p) {
+      window.open('https://www.google.com/maps/dir/?api=1&origin='+p.coords.latitude+','+p.coords.longitude+'&destination='+dlat+','+dlng+'&travelmode=driving','_blank');
+    }, function() {
+      window.open('https://www.google.com/maps/dir/?api=1&destination='+dlat+','+dlng,'_blank');
+    });
+  } else {
+    window.open('https://www.google.com/maps/dir/?api=1&destination='+dlat+','+dlng,'_blank');
+  }
+}
+
+async function loadReports() {
+  try {
+    var res = await fetch('/api/reports');
+    if (!res.ok) { console.warn('Reports API error:', res.status); return; }
+    allReports = await res.json();
+    render();
+    var now = new Date();
+    document.getElementById('lastRefresh').textContent = 'Updated ' + now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  } catch(e) {
+    console.error('Load error:', e);
+  }
+}
+
+function render() {
+
+  if (allReports.some(r => r.isEmergency)) {
+    new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg").play();
+  }
+
+
+  var s = document.getElementById('filterStatus').value;
+  var u = document.getElementById('filterUrgency').value;
+  var src = document.getElementById('filterSource').value;
+
+  /* Stats */
+  document.getElementById('statTotal').textContent    = allReports.length;
+  document.getElementById('statEmerg').textContent    = allReports.filter(function(r){return r.isEmergency;}).length;
+  document.getElementById('statCritical').textContent = allReports.filter(function(r){return r.urgency==='Critical';}).length;
+  document.getElementById('statDone').textContent     = allReports.filter(function(r){return r.status==='Completed';}).length;
+
+  var filtered = allReports.filter(function(r) {
+    var okS   = (s==='all')   || (r.status===s);
+    var okU   = (u==='all')   || (r.urgency===u);
+    var okSrc = (src==='all') || (src==='emergency' && r.isEmergency) || (src==='regular' && !r.isEmergency);
+    return okS && okU && okSrc;
+  });
+
+  /* Emergency reports always bubble to top within filter */
+  filtered.sort(function(a,b) {
+    const priority = {Critical: 4, High: 3, Medium: 2, Low: 1};
+    if (a.isEmergency && !b.isEmergency) return -1;
+    if (!a.isEmergency && b.isEmergency) return 1;
+    return (priority[b.urgency] || 0) - (priority[a.urgency] || 0);
+  });
+
+  var listEl = document.getElementById('list');
+  listEl.innerHTML = '';
+
+  if (allReports.length === 0) {
+    document.getElementById('emptyBox').style.display = 'block'; return;
+  }
+  document.getElementById('emptyBox').style.display = 'none';
+
+  if (filtered.length === 0) {
+    listEl.innerHTML = '<div class="col-12"><div class="va-card p-4 text-center" style="border:none;"><p class="va-soft mb-0">No cases match these filters.</p></div></div>';
+    return;
+  }
+
+  filtered.forEach(function(r) {
+    var col = document.createElement('div');
+    col.className = 'col-lg-6 col-xl-4';
+
+    var desc = r.description || '';
+    var cleanDesc = desc.replace('[EMERGENCY CALL] ','').replace('[EMERGENCY VOICE REPORT]','').trim();
+
+    var emergBanner = r.isEmergency ? '<div style="background:linear-gradient(135deg,#dc2626,#ef4444);color:white;padding:8px 14px;border-radius:10px;font-weight:800;font-size:0.82rem;margin-bottom:14px;display:inline-flex;align-items:center;gap:8px;box-shadow:0 4px 12px rgba(220,38,38,0.30);"><span style="animation:emergPulse 1.5s infinite;font-size:1.1rem;">🚨</span>EMERGENCY CALL REPORT</div>' : '';
+
+    var photoHtml = r.photoUrl ? '<div style="margin-bottom:14px;position:relative;"><img src="'+r.photoUrl+'" style="width:100%;border-radius:12px;object-fit:cover;max-height:200px;box-shadow:0 4px 12px rgba(0,0,0,0.10);" loading="lazy"><div style="position:absolute;top:8px;right:8px;background:rgba(13,148,136,0.92);color:white;padding:3px 10px;border-radius:7px;font-size:0.7rem;font-weight:800;">✓ Photo</div></div>' : '';
+
+    var mapsBtn = r.geo ? '<button onclick="getLiveDirections(\''+r.geo+'\')" class="va-btn w-100 mb-3" style="padding:11px;font-size:0.9rem;justify-content:center;"><span style="font-size:1.1rem;">🧭</span> Live Directions to Animal</button>' : '';
+
+    var controls = isLoggedIn ? `
+      <div class="d-flex gap-2 mb-3 align-items-center">
+        <select class="form-select form-select-sm status-select" data-id="${r.id}" style="max-width:160px;">
+          <option ${r.status==='Reported'?'selected':''}>Reported</option>
+          <option ${r.status==='Accepted'?'selected':''}>Accepted</option>
+          <option ${r.status==='In Progress'?'selected':''}>In Progress</option>
+          <option ${r.status==='Completed'?'selected':''}>Completed</option>
+        </select>
+        <button class="va-btn-outline btn-del" data-id="${r.id}" style="border-color:rgba(220,38,38,0.28);color:#dc2626;padding:8px 14px;" title="Delete">
+          <i class="fa-solid fa-trash" style="font-size:0.9rem;"></i>
+        </button>
+      </div>
+      <div class="d-flex gap-2 mb-3">
+        <input class="form-control form-control-sm assign-input" data-id="${r.id}" value="${r.assignedTo||''}" placeholder="Assign rescuer / NGO team…">
+        <button class="va-btn-outline btn-save" data-id="${r.id}" style="white-space:nowrap;padding:8px 14px;font-size:0.82rem;">
+          <i class="fa-solid fa-floppy-disk me-1"></i>Save
+        </button>
+      </div>` : `
+      <div class="mb-3">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="padding:5px 12px;border-radius:7px;font-size:0.8rem;font-weight:700;background:${r.status==='Completed'?'rgba(22,163,74,0.12)':r.status==='Accepted'?'rgba(13,148,136,0.10)':'rgba(245,158,11,0.10)'};color:${r.status==='Completed'?'#15803d':r.status==='Accepted'?'var(--teal)':'#78350f'};">${r.status}</span>
+          ${r.assignedTo ? '<span style="font-size:0.8rem;color:var(--muted);">→ '+r.assignedTo+'</span>' : ''}
+        </div>
+      </div>`;
+
+    col.innerHTML = `
+      <div class="va-card p-4 h-100 ${urgClass(r.urgency)}" style="border:none;box-shadow:var(--shadow-md);">
+        ${emergBanner}
+
+        <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+          <div>
+            <div style="font-family:'Syne',sans-serif;font-weight:900;font-size:1.05rem;">Case ${r.id}</div>
+            <div class="va-soft" style="font-size:0.78rem;margin-top:2px;">${r.urgency} · ${fmt(r.createdAt)}</div>
+          </div>
+          <span style="padding:4px 12px;border-radius:999px;font-size:0.74rem;font-weight:800;background:${r.isEmergency?'rgba(220,38,38,0.10)':'rgba(245,158,11,0.10)'};color:${r.isEmergency?'#991b1b':'#78350f'};border:1px solid ${r.isEmergency?'rgba(220,38,38,0.22)':'rgba(245,158,11,0.22)'};">
+            ${r.isEmergency?'🚨 Emergency':'📋 Report'}
+          </span>
+        </div>
+
+        ${photoHtml}
+
+        <div class="mb-2">
+          <span class="va-soft" style="font-size:0.82rem;">Animal:</span>
+          <strong style="color:var(--amber);margin-left:4px;">${r.animalType||'Unknown'}</strong>
+        </div>
+        <div class="mb-3">
+          <span class="va-soft" style="font-size:0.82rem;">Location:</span>
+          <strong style="margin-left:4px;">${r.locationText||'—'}</strong>
+        </div>
+
+        ${mapsBtn}
+
+        <div style="background:var(--card2);border-radius:12px;padding:12px 14px;margin-bottom:14px;border:1px solid var(--border);max-height:120px;overflow-y:auto;">
+          <div style="font-size:0.7rem;font-weight:700;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px;">Description</div>
+          <div style="font-size:0.88rem;line-height:1.65;color:var(--text);">${cleanDesc||'No description provided'}</div>
+        </div>
+
+        ${controls}
+
+        <!-- REPORTER INFO — always visible, full width -->
+        <div class="reporter-card">
+          <div style="font-size:0.7rem;font-weight:800;letter-spacing:0.09em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">👤 Reporter Contact</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="width:44px;height:44px;border-radius:50%;background:var(--grad-brand);display:flex;align-items:center;justify-content:center;font-size:1.3rem;box-shadow:0 4px 12px rgba(245,158,11,0.26);flex-shrink:0;">👤</div>
+              <div>
+                <div style="font-family:'Syne',sans-serif;font-weight:900;font-size:1.05rem;color:var(--text);">${r.reporterName || '<em style="color:var(--soft);font-weight:400;font-style:normal;">Anonymous</em>'}</div>
+                <div style="font-size:0.9rem;font-weight:700;color:${r.reporterPhone?'var(--text)':'var(--soft)'};margin-top:2px;">${r.reporterPhone||'No phone number'}</div>
+              </div>
+            </div>
+            ${r.reporterPhone ? '<a href="tel:'+r.reporterPhone+'" class="reporter-call-btn">📞 Call Reporter</a>' : '<span style="font-size:0.78rem;color:var(--soft);">No contact info</span>'}
+          </div>
+        </div>
+      </div>`;
+
+    document.getElementById('list').appendChild(col);
+  });
+
+  /* Event listeners — only if logged in */
+  if (isLoggedIn) {
+    document.querySelectorAll('.status-select').forEach(function(sel) {
+      sel.addEventListener('change', async function(e) {
+        await fetch('/api/report/'+e.target.dataset.id, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:e.target.value})});
+        loadReports();
+      });
+    });
+
+    document.querySelectorAll('.btn-save').forEach(function(btn) {
+      btn.addEventListener('click', async function(e) {
+        var id = e.currentTarget.dataset.id;
+        var val = document.querySelector('.assign-input[data-id="'+id+'"]').value.trim();
+        await fetch('/api/report/'+id, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({assignedTo:val})});
+        e.currentTarget.innerHTML='<i class="fa-solid fa-check me-1"></i>Saved!';
+        setTimeout(function(){e.currentTarget.innerHTML='<i class="fa-solid fa-floppy-disk me-1"></i>Save';},2000);
+      });
+    });
+
+    document.querySelectorAll('.btn-del').forEach(function(btn) {
+      btn.addEventListener('click', async function(e) {
+        var id = e.currentTarget.dataset.id;
+        if (confirm('Delete this report permanently?')) {
+          await fetch('/api/report/'+id,{method:'DELETE'});
+          loadReports();
+        }
+      });
+    });
+  }
+}
+
+document.getElementById('btnRefresh').addEventListener('click', loadReports);
+document.getElementById('filterStatus').addEventListener('change', render);
+document.getElementById('filterUrgency').addEventListener('change', render);
+document.getElementById('filterSource').addEventListener('change', render);
+
+loadReports();
+setInterval(loadReports, 30000);
+</script>
+
+<style>
+@keyframes emergPulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.2);} }
+</style>
+{% endblock %}
