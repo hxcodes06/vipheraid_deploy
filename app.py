@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, redirect, session, jsonify, f
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from werkzeug.utils import secure_filename
-from ultralytics import YOLO
 from PIL import Image
 
 import os, json, base64, math, io, uuid
@@ -23,9 +22,6 @@ app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 db = SQLAlchemy(app)
-
-# ── YOLO model ──
-model = YOLO("yolov8n.pt")
 
 # Animal classes allowed
 ANIMAL_CLASSES = [
