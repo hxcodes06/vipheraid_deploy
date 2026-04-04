@@ -23,6 +23,7 @@ os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 db = SQLAlchemy(app)
 
+
 # Animal classes allowed
 ANIMAL_CLASSES = [
     "bird", "cat", "dog", "horse", "sheep",
@@ -133,16 +134,7 @@ def ai_report():
         path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
         photo.save(path)
 
-        # YOLO detection — use as fallback if reporter didn't name the animal
-        image = Image.open(path).convert("RGB")
-        results = model(image)
-
-        detected_animal = "Unknown"
-        for r in results:
-            for box in r.boxes:
-                cls = int(box.cls[0])
-                detected_animal = model.names.get(cls, "Unknown")
-                break
+      
 
         # Reporter-supplied fields (from the new form)
         animal_name    = request.form.get("animal_name", "").strip()
@@ -151,7 +143,7 @@ def ai_report():
         reporter_phone = request.form.get("reporter_phone", "").strip()
 
         # Use reporter-supplied name if given, else fall back to YOLO
-        final_animal = animal_name if animal_name else detected_animal
+        final_animal = animal_name if animal_name else unknown
 
         # GPS from frontend
         latitude  = request.form.get("latitude", type=float)
